@@ -5,14 +5,14 @@ contract SendEther {
     // Function to receive Ether
     receive() external payable {}
      function sendViaTransfer(address payable _to) external  payable {
-        _to.transfer(123);
+        _to.transfer(73);
      }
     function sendViaSend(address payable _to) external  payable {
-        bool sent = _to.send(123);
+        bool sent = _to.send(773);
         require(sent, "send failed");
     }
         function sendViaCall(address payable _to) public payable {
-        (bool success, ) = _to.call{value: 123}("");
+        (bool success, ) = _to.call{value: 733}("");
         require(success, "Call failed");
     }
 }     
