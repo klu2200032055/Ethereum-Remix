@@ -1,40 +1,55 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+
+pragma solidity ^0.8.11;
 
 contract Lottery {
+    address public owner;
     address payable[] public players;
-    address public manager;
+    uint public lotteryId;
+    mapping (uint => address payable) public lotteryHistory;
 
     constructor() {
-        manager = msg.sender;
+        owner = msg.sender;
+        lotteryId = 1;
     }
 
-    function enter() public payable {
-        require(msg.value > 0.01 ether, "Minimum 0.01 ether required");
-        players.push(payable(msg.sender));
+    function getWinnerByLottery(uint lottery) public view returns (address payable) {
+        return lotteryHistory[lottery];
     }
 
-    function pickWinner() public restricted {
-        require(players.length > 0, "No players in the lottery");
-        uint index = random() % players.length;
-        players[index].transfer(address(this).balance);
-        players = new address payable ; // reset players array
+    function getBalance() public view returns (uint) {
+        return address(this).balance;
     }
 
     function getPlayers() public view returns (address payable[] memory) {
         return players;
     }
 
-    function random() private view returns (uint) {
-        return uint(
-            keccak256(
-                abi.encodePacked(block.difficulty, block.timestamp, players.length)
-            )
-        );
+    function enter() public payable {
+        require(msg.value > .01 ether);
+
+        // address of player entering lottery
+        players.push(payable(msg.sender));
     }
 
-    modifier restricted() {
-        require(msg.sender == manager, "Only manager can call this");
-        _;
+    function getRandomNumber() public view returns (uint) {
+        return uint(keccak256(abi.encodePacked(owner, block.timestamp)));
+    }
+
+    function pickWinner() public onlyowner {
+        uint index = getRandomNumber() % players.length;
+        players[index].transfer(address(this).balance);
+
+        lotteryHistory[lotteryId] = players[index];
+        lotteryId++;
+        
+
+        // reset the state of the contract
+        players = new address payable[](0);
+    }
+
+    modifier onlyowner() {
+      require(msg.sender == owner);
+      _;
     }
 }
